@@ -1,41 +1,33 @@
-const AccessToken= require('../models/accessToken'); 
+const accessTokenRepository = require('../repositories/accessTokenRepository');
 
-// Store the access token
-const storeAccessToken = async (accessToken) => {
-  try {
-    const tokenEntry = new AccessToken({
-      accessToken: accessToken
-    });
-    await tokenEntry.save();
-  } catch (err) {
-    console.error("Error storing access token:", err);
-    throw err;
+class AccessTokenService {
+  async storeAccessToken(accessToken) {
+    try {
+      return await accessTokenRepository.storeAccessToken(accessToken);
+    } catch (err) {
+      console.error("Error in service while storing access token:", err);
+      throw err;
+    }
   }
-};
 
-// Check if a user has an access token
-const hasAccessToken = async (accessToken) => {
+  async hasAccessToken(accessToken) {
     try {
-      const valid = await AccessToken.findOne({ accessToken: accessToken });
-      return !!valid; 
+      const token = await accessTokenRepository.findAccessToken(accessToken);
+      return !!token;
     } catch (err) {
-      console.error("Error checking access token:", err);
+      console.error("Error in service while checking access token:", err);
       throw err;
     }
-  };
+  }
 
-// Delete an access token
-const deleteAccessToken = async (accessToken) => {
+  async deleteAccessToken(accessToken) {
     try {
-        //return 0: not found; return 1: delete successfully
-      return await AccessToken.deleteOne({ accessToken: accessToken });
+      return await accessTokenRepository.deleteAccessToken(accessToken);
     } catch (err) {
+      console.error("Error in service while deleting access token:", err);
       throw err;
     }
-  };
-  
-module.exports = {
-    storeAccessToken,
-    hasAccessToken,
-    deleteAccessToken,
-};
+  }
+}
+
+module.exports = new AccessTokenService();

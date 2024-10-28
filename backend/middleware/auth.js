@@ -1,0 +1,90 @@
+const { setCookie, introspect } = require("../utils");
+const { getUserById } = require('../services/userService');
+const { hasAccessToken } = require("../services/accessTokenService");
+
+const roleHierarchy = ['admin', 'donor', 'charity'];
+
+const authenticate = async (req, res, next) => {
+  const { accessToken } = req.cookies;
+  console.log("Access token: " + accessToken);
+
+  try {
+    // Check if refresh token exists
+    if (!accessToken) {
+      return res.status(403).json("FORBIDDEN: Authentication Invalid");
+    }
+
+    // Verify refresh token
+    const payload = introspect(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+    if (!payload) {
+      return res.status(401).json("UNAUTHORIZED: Invalid token");
+    }
+
+    // Get user by role
+    const user = await getUserById(payload.id);
+    const isValid = await hasAccessToken(accessToken);
+    if (!user || !isValid ) {
+      return res.status(403).json("FORBIDDEN: Authentication Invalid");
+    }
+    
+    // Set new token cookies
+    setCookie(res, accessToken);
+
+    // Attach user information to the request
+    req.id = payload.id;
+    req.role = payload.role;
+
+    next();
+  } catch (err) {
+    console.error(err);
+    res
+    .status(500)
+    .json("INTERNAL SERVER ERROR");
+  }
+};
+
+const authorize = (allowedRoles) => {
+  return async (req, res, next) => {
+    try {
+      const { id, role } = req;
+
+      // Check if the current role is in the allowed roles
+      if (allowedRoles.includes(role)) {
+        const user = getUserById(id)
+
+        if (user) {
+          console.log("Grant Permission");
+
+          // Determine the role to assign based on allowed roles
+          let assignedRole;
+          if (allowedRoles.length === 1) {
+            assignedRole = allowedRoles[0];
+          } else {
+            // Sort allowedRoles based on roleHierarchy and get the lowest role
+            allowedRoles.sort((a, b) => roleHierarchy.indexOf(a) - roleHierarchy.indexOf(b));
+            assignedRole = allowedRoles[0];
+          }
+
+          req.id = id;
+          req.role = assignedRole; 
+          return next();
+        }
+      }
+
+      res
+        .status(403)
+        .json("FORBIDDEN: You do not have the required permissions!");
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json("INTERNAL SERVER ERROR");
+    }
+  };
+};
+
+module.exports = {
+  authenticate,
+  authorize,
+};
