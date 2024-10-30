@@ -1,12 +1,17 @@
-// services/userService.js
+require("dotenv").config();
 const UserRepository = require('../repositories/userRepository');
+const DonorRepository = require('../repositories/donorRepository');
+const CharityRepository = require('../repositories/charityRepository');
 const bcrypt = require('bcrypt');
-const { validateUserRequest, createUserResponse } = require('../dto/userDto');
+const { validateRegisterRequest } = require('../dto/userDto');
+const { validateDonorRegisterRequest } = require('../dto/donorDto');
+const { validateCharityRegisterRequest } = require('../dto/charityDto');
+const transporter = require('../utils/mailer');
 
 class UserService {
-  async register(userData) {
+  async register(userData, requiredData) {
     // Validate user request data
-    const { error } = validateUserRequest(userData);
+    const { error } = validateRegisterRequest(userData);
     if (error) {
       throw new Error(error.details[0].message);
     }
@@ -26,11 +31,45 @@ class UserService {
       password: hashedPassword,
     };
 
-    const createdUser = await UserRepository.create(newUser);
-    return createUserResponse(createdUser); 
+    const user = await UserRepository.create(newUser);
+
+    // Map the new user ID into data to create donor or charity
+    const roleSpecificData = {
+      ...requiredData,
+      user: user.id,
+    };
+
+    // Create role-specific record
+    let roleCreated;
+    if (user.role === 'Donor') {
+      const { error } = validateDonorRegisterRequest(roleSpecificData);
+      if (error) {
+        throw new Error(error.details[0].message);
+      }
+
+      roleCreated = await DonorRepository.create(roleSpecificData);
+    } else if (user.role === 'Charity') {
+      const { error } = validateCharityRegisterRequest(roleSpecificData);
+      if (error) {
+        throw new Error(error.details[0].message);
+      }
+
+      roleCreated = await CharityRepository.create(roleSpecificData);
+    }
+
+    // Send registration success email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: 'Welcome to Our Platform!',
+      text: `Hello ${user.name},\n\nThank you for registering as a ${user.role} on our platform!`,
+      html: `<p>Hello ${user.name},</p><p>Thank you for registering as a ${user.role} on our platform!</p>`
+    });
+
+    return { user, roleCreated };
   }
 
-  async login(email, password) {
+  async login(email, password, res) {
     // Find the user by email
     const user = await UserRepository.findByEmail(email);
     if (!user) {
@@ -43,13 +82,26 @@ class UserService {
       throw new Error('Invalid password');
     }
 
-    // Generate an access token
-    const accessToken = generateToken(user._id, user.role);
-    setCookie(res, accessToken);
-
     return {
-      user: createUserResponse(user),
+      id: user.id,
+      role: user.role
     };
+  }
+
+  async getUserById(userId) {
+    const user = await UserRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
+  async getUserByEmail(email) {
+    const user = await UserRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
   }
 }
 

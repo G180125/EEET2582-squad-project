@@ -1,4 +1,3 @@
-// accessTokenRepository.js
 const AccessToken = require('../models/accessToken');
 
 class AccessTokenRepository {

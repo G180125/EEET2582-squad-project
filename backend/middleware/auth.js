@@ -2,10 +2,8 @@ const { setCookie, introspect } = require("../utils");
 const { getUserById } = require('../services/userService');
 const { hasAccessToken } = require("../services/accessTokenService");
 
-const roleHierarchy = ['admin', 'donor', 'charity'];
-
 const authenticate = async (req, res, next) => {
-  const { accessToken } = req.cookies;
+  const accessToken = req.cookies.accessToken; 
   console.log("Access token: " + accessToken);
 
   try {
@@ -56,18 +54,9 @@ const authorize = (allowedRoles) => {
         if (user) {
           console.log("Grant Permission");
 
-          // Determine the role to assign based on allowed roles
-          let assignedRole;
-          if (allowedRoles.length === 1) {
-            assignedRole = allowedRoles[0];
-          } else {
-            // Sort allowedRoles based on roleHierarchy and get the lowest role
-            allowedRoles.sort((a, b) => roleHierarchy.indexOf(a) - roleHierarchy.indexOf(b));
-            assignedRole = allowedRoles[0];
-          }
-
           req.id = id;
-          req.role = assignedRole; 
+          req.role = role; 
+
           return next();
         }
       }

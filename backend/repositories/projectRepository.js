@@ -1,43 +1,62 @@
 const Project = require('../models/project');
 
 class ProjectRepository {
-  async findAll(query) {
+  async create(data) {
+    const project = new Project(data);
+    return await project.save();
+  }
+  
+  async count() {
+    return await Project.countDocuments();
+  }
+
+  async findById(id) {
+    return await Project.findById(id);
+  }
+
+  async update(id, data) {
+    return await Project.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async getAll(page, limit) {
+    const offset = (page - 1) * limit;
+    return await Project.find() 
+      .skip(offset)  
+      .limit(limit);
+  }
+
+  async countActiveProjects() {
+    return await Project.countDocuments({ status: 'active' });
+  }
+
+  async getActiveProjects(page, limit, filters = {}) {
+    const { status, search } = filters;
+    const query = { status: 'active' }; 
+
+    if (status) {
+      query.status = status; 
+    }
+
+    if (search) {
+      query.title = { $regex: search, $options: 'i' }; 
+    }
+
+    const offset = (page - 1) * limit;
     return await Project.find(query)
-      .populate('creator', 'name email')
-      .populate('charity', 'name');
+      .skip(offset)
+      .limit(limit)
+      .populate('charity');
   }
 
-  async createProject(projectData) {
-    const project = await ProjectRepository.createProject(projectData);
-    await emailService.sendConfirmationEmail(projectData.charity, project);
-    return project;
+  async countProjectsByCharity(charityId) {
+    return await Project.countDocuments({ charity: charityId });
   }
 
-  async updateProject(id, updateData) {
-    return await ProjectRepository.updateProject(id, updateData);
-  }
-
-  async getProjectDetails(id) {
-    return await ProjectRepository.getProjectById(id);
-  }
-
-  async deleteProject(id) {
-    return await ProjectRepository.deleteProject(id);
-  }
-
-  async haltProject(id) {
-    return await ProjectRepository.updateProject(id, { status: 'halted' });
-  }
-
-  async resumeProject(id) {
-    return await ProjectRepository.updateProject(id, { status: 'open' });
-  }
-
-  async getStatistics(charityId) {
-    const projects = await ProjectRepository.getCharityProjects(charityId);
-    const totalProjects = projects.length;
-    const totalDonations = projects.reduce((acc, project) => acc + project.raisedAmount, 0);
-    return { totalProjects, totalDonations };
+  async getProjectsByCharity(charityId, page, limit) {
+    const offset = (page - 1) * limit;
+    return await Project.find({ charity: charityId })
+      .skip(offset)
+      .limit(limit);
   }
 }
 

@@ -1,12 +1,13 @@
 const UserService = require('../services/userService');
-const { generateToken } = require('../utils'); 
+const { generateToken, setCookie } = require('../utils'); 
 const { deleteAccessToken } = require("../services/accessTokenService");
 const bcrypt = require('bcrypt');
 
 // Register a new user
 const register = async (req, res) => {
   try {
-    const newUser = await UserService.register(req.body);
+    const { newUserData, requiredData} = req.body;
+    const newUser = await UserService.register(newUserData, requiredData);
     return res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -22,14 +23,14 @@ const login = async (req, res) => {
         return res.status(400).json("BAD_REQUEST: Please provide email and password");
     }
 
-    const { user } = await UserService.login(email, password);
+    const { id, role } = await UserService.login(email, password);
 
-    req.role = role;
-    req.id = user.patient_id;
+    const tokens = await generateToken(id, role);
+    setCookie(res, tokens);
 
     return res.status(200).json("User authenticated successfully");
-  } catch (error) {
-    return next(err);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
   }
 };
 
@@ -53,7 +54,7 @@ const logout = async (req, res) => {
         
         return res.status(200).json("User logged out successfully");
       } catch (err) {
-        return next(err);
+        return res.status(400).json({ error: err.message });
       }
 };
 

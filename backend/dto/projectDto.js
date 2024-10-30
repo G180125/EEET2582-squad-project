@@ -1,38 +1,25 @@
 const Joi = require('joi');
 
-// Define the schema for Project Request DTO
-const projectRequestSchema = Joi.object({
-  charity: Joi.string().required(),
-  status: Joi.string().valid('open', 'closed', 'halted').required(),
-  type: Joi.string().valid('global', 'local').required(),
-  name: Joi.string().required(),
+// Define the schema for create project Request DTO
+const createProjectRequestSchema = Joi.object({
+  title: Joi.string().required(),
   description: Joi.string().optional(),
-  goalAmount: Joi.number().required(),
+  goalAmount: Joi.number().positive().required(),
+  raisedAmount: Joi.number().valid(0).required(),
+  createdAt: Joi.date().default(Date.now), 
   duration: Joi.string().required(),
-  sector: Joi.string().optional(),
-  account: Joi.string().required()
+  status: Joi.string().valid('pending', 'active').required(),
+  charity: Joi.string().required(), 
+  region: Joi.string().optional(), 
+  country: Joi.string().optional(), 
+  category: Joi.string().optional(), 
+  account: Joi.string().optional(), 
+  image: Joi.array().items(Joi.string()), 
+  video: Joi.array().items(Joi.string())  
 });
 
-// Validation function for project request data
-const validateProjectRequest = (requestData) => {
-  return projectRequestSchema.validate(requestData);
+const validateProjectCreationRequest = (projectData) => {
+  return createProjectRequestSchema.validate(projectData);
 };
 
-// Response format function for project creation
-const createProjectResponse = (project) => {
-  return {
-    id: project._id,
-    name: project.name,
-    type: project.type,
-    description: project.description,
-    goalAmount: project.goalAmount,
-    raisedAmount: project.raisedAmount,
-    createdAt: project.createdAt,
-    duration: project.duration,
-    status: project.status,
-    charity: project.charity,
-    account: project.account
-  };
-};
-
-module.exports = { validateProjectRequest, createProjectResponse };
+module.exports = { validateProjectCreationRequest };

@@ -1,5 +1,5 @@
+require('dotenv').config();
 const jwt = require("jsonwebtoken");
-const db = require("../databases/mysqlClient");
 const { storeAccessToken } = require("../services/accessTokenService");
 
 const generateToken = async (id, role) => {
@@ -22,7 +22,7 @@ const generateToken = async (id, role) => {
     // Store the access token in the database
     await storeAccessToken(accessToken);
 
-    return { accessToken };
+    return accessToken;
   } catch (err) {
     console.error(err);
     throw err;

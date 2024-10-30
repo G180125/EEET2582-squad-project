@@ -1,63 +1,77 @@
-const express = require("express");
-const projectRouter = express.Router();
-const { authenticate, authorize } = require("../middleware/auth");
-const UserType = require('../enums/UserType');
+const express = require('express');
 const ProjectController = require('../controllers/projectController');
+const { authenticate, authorize } = require("../middleware/auth");
+const UserType = require('../models/enum/userType');
+const ProjectRouter = express.Router();
 
-projectRouter.get(
-  "/",
-  authenticate,
-  authorize[UserType.DONOR], 
-  ProjectController.getProjects
+ProjectRouter.get(
+    '/all', 
+    authenticate,
+    authorize([UserType.ADMIN]),
+    ProjectController.getAllProjects
 );
 
-projectRouter.get(
-  "/my",
-  authenticate,
-  authorize[UserType.CHARITY], 
-  ProjectController.getMyProjects
+ProjectRouter.get(
+    '/active', 
+    authenticate,
+    authorize([UserType.DONOR]),
+    ProjectController.getActiveProjects
 );
 
-router.post(
-  '/',
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.createProject
+ProjectRouter.get(
+    '/:id', 
+    authenticate,
+    authorize([UserType.ADMIN, UserType.DONOR, UserType.CHARITY]),
+    ProjectController.getProjectById
 );
 
-router.put(
-  '/:projectId', 
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.updateProject
+ProjectRouter.get(
+    '/my', 
+    authenticate,
+    authorize([UserType.DONOR, UserType.CHARITY]),
+    ProjectController.getMyProjects
 );
 
-router.patch(
-  '/:projectId/halt', 
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.haltProject
+ProjectRouter.post(
+    '/new', 
+    authenticate,
+    authorize([UserType.ADMIN, UserType.CHARITY]),
+    ProjectController.createProject
 );
 
-router.patch(
-  '/:projectId/resume', 
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.resumeProject
+ProjectRouter.put(
+    '/:id',
+    authenticate,
+    authorize([UserType.CHARITY]), 
+    ProjectController.updateProject
 );
 
-router.delete(
-  '/:projectId', 
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.deleteProject
+ProjectRouter.patch(
+    '/:id/active',
+    authenticate,
+    authorize([UserType.ADMIN]), 
+    ProjectController.activateProject
 );
 
-router.get(
-  '/statistics', 
-  authenticate,
-  authorize[UserType.CHARITY],
-  ProjectController.getStatistics
+ProjectRouter.patch(
+    '/:id/halt',
+    authenticate,
+    authorize([UserType.CHARITY]), 
+    ProjectController.haltProject
 );
 
-module.exports = projectRouter;
+ProjectRouter.patch(
+    '/:id/close',
+    authenticate,
+    authorize([UserType.CHARITY]), 
+    ProjectController.closeProject
+);
+
+ProjectRouter.delete(
+    '/:id',
+    authenticate,
+    authorize([UserType.ADMIN]), 
+    ProjectController.deleteProject
+);
+
+module.exports = ProjectRouter;
