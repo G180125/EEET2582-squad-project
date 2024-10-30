@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -18,7 +20,7 @@ connectDB()
   .catch(err => console.error('Error during initialization:', err));
 
 // CORS setup
-const whilelistedCors = [
+const whitelistedCors = [
   `http://localhost:${SERVER_PORT}`,
   'http://localhost:5173',
 ];
@@ -27,7 +29,7 @@ const whilelistedCors = [
 app.use(helmet()); // Set security-related HTTP headers
 app.use(cors({
   origin: (origin, callback) => {
-    if (whilelistedCors.includes(origin) || !origin) {
+    if (whitelistedCors.includes(origin) || !origin) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -53,6 +55,9 @@ app.use(`${API_PREFIX}/charities`, charityRouter);
 app.use(`${API_PREFIX}/donors`, donorRouter);
 app.use(`${API_PREFIX}/projects`, projectRouter);
 
+// Set up Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
   console.error(err); 
@@ -69,4 +74,5 @@ app.use(errorHandler);
 // Start the server
 app.listen(SERVER_PORT, () => {
   console.log(`Server running on port ${SERVER_PORT}`);
+  console.log(`Swagger docs available at http://localhost:${SERVER_PORT}/api-docs`);
 });

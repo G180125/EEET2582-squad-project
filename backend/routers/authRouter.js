@@ -14,6 +14,6 @@ authRouter.post("/new/admin", authenticate, authorize([UserType.ADMIN]), registe
 
 authRouter.post("/login", login);
 
-authRouter.delete("/logout", authenticate, logout);
+authRouter.post("/logout", authenticate, logout);
 
 module.exports = authRouter;

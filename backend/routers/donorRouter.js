@@ -19,7 +19,7 @@ donorRouter.get(
 );
 
 donorRouter.get(
-    '/myInfo', 
+    '/me', 
     authenticate,
     authorize([UserType.DONOR]),
     DonorController.getMyInfo

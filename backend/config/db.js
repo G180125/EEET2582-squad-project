@@ -25,16 +25,16 @@ const connectDB = async () => {
 const initializeData = async () => {
   try {
     // Check if there are any users
-    const userCount = await User.countDocuments();
     const charityCount = await Charity.countDocuments();
     const donorCount = await Donor.countDocuments();
     const countryCount = await Country.countDocuments();
     const projectCount = await Project.countDocuments();
-    if (userCount > 0 && charityCount < 6 && donorCount < 30 && countryCount < 5 && projectCount < 7 ) {
+    console.log
+    if (charityCount == 6  && donorCount == 25 && countryCount == 5 && projectCount == 7) {
       console.log('Database already populated');
       return;
     }
-
+    
     await User.deleteMany();
     await Charity.deleteMany();
     await Donor.deleteMany();

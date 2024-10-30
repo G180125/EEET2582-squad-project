@@ -4,6 +4,7 @@ const { authenticate, authorize } = require("../middleware/auth");
 const UserType = require('../models/enum/userType');
 const ProjectRouter = express.Router();
 
+
 ProjectRouter.get(
     '/all', 
     authenticate,

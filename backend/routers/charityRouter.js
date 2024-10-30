@@ -19,7 +19,7 @@ CharityRouter.get(
 );
 
 CharityRouter.get(
-    '/myInfo', 
+    '/me', 
     authenticate,
     authorize([UserType.CHARITY]),
     CharityController.getMyInfo
