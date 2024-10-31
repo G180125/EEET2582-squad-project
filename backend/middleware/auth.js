@@ -1,6 +1,6 @@
 const { setCookie, introspect } = require("../utils");
-const { getUserById } = require('../services/userService');
-const { hasAccessToken } = require("../services/accessTokenService");
+const { getUserById } = require('../module/user/userService');
+const { hasAccessToken } = require("../module/auth/accessTokenService");
 
 const authenticate = async (req, res, next) => {
   const accessToken = req.cookies.accessToken; 

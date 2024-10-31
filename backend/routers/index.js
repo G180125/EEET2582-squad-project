@@ -1,7 +1,7 @@
-const authRouter = require("./authRouter");
-const charityRouter = require("./charityRouter");
-const donorRouter = require("./donorRouter");
-const projectRouter = require("./projectRouter");
+const authRouter = require("../module/auth/authRouter");
+const charityRouter = require("../module/charity/charityRouter");
+const donorRouter = require("../module/donor/donorRouter");
+const projectRouter = require("../module/project/projectRouter");
 
 module.exports = {
     authRouter,

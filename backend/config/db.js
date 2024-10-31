@@ -4,11 +4,11 @@ const bcrypt = require('bcrypt');
 const mockData = require('./mock-data/mock-data'); 
 
 // Import Models
-const User = require('../models/user');
-const Charity = require('../models/charity');
-const Donor = require('../models/donor');
-const Country = require('../models/country');
-const Project = require('../models/project');
+const User = require('../module/user/user');
+const Charity = require('../module/charity/charity');
+const Donor = require('../module/donor/donor');
+const Country = require('../module/country/country');
+const Project = require('../module/project/project');
 
 // Connect to the DB
 const connectDB = async () => {

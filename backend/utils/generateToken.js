@@ -1,6 +1,6 @@
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
-const { storeAccessToken } = require("../services/accessTokenService");
+const { storeAccessToken } = require("../module/auth/accessTokenService");
 
 const generateToken = async (id, role) => {
   try {
