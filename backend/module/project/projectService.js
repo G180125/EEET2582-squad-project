@@ -4,9 +4,9 @@ const { validateProjectCreationRequest } = require('./projectDto');
 class ProjectService {
   // Method to get all projects
   async getAllProjects( page, limit) {
-    const totalProjects = await Project.count();
+    const totalProjects = await ProjectRepository.count();
     const totalPages = Math.ceil(totalProjects / limit);
-    const projects = await Project.find(query)
+    const projects = await ProjectRepository.find(query)
       .skip((page - 1) * limit)
       .limit(limit);
 

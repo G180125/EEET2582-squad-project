@@ -10,9 +10,6 @@ const createProjectRequestSchema = Joi.object({
   duration: Joi.string().required(),
   status: Joi.string().valid('pending', 'active').required(),
   charity: Joi.string().required(), 
-  region: Joi.string().optional(), 
-  country: Joi.string().optional(), 
-  category: Joi.string().optional(), 
   account: Joi.string().optional(), 
   image: Joi.array().items(Joi.string()), 
   video: Joi.array().items(Joi.string())  

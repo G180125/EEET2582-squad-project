@@ -10,9 +10,6 @@ const projectSchema = new Schema({
   duration: { type: String, required: true },
   status: { type: String, enum: ['pending', 'active', 'halt', 'closed', 'deleted'], required: true },
   charity: { type: Schema.Types.ObjectId, ref: 'Charity', required: true },
-  region: { type: Schema.Types.ObjectId, ref: 'Region' },
-  country: { type: Schema.Types.ObjectId, ref: 'Country' },
-  category: { type: Schema.Types.ObjectId, ref: 'Category' },
   account: { type: String },
   image: { type: [String] },
   video: { type: [String] }

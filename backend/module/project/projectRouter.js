@@ -6,8 +6,8 @@ const ProjectRouter = express.Router();
 
 ProjectRouter.get(
     '/all', 
-    authenticate,
-    authorize([UserType.ADMIN]),
+    // authenticate,
+    // authorize([UserType.ADMIN]),
     ProjectController.getAllProjects
 );
 

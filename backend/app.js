@@ -5,9 +5,10 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const helmet = require("helmet");
-const httpStatus = require("http-status"); 
-const { authRouter, charityRouter, donorRouter, projectRouter } = require("./routers");
+const httpStatus = require("http-status");
+const { authRouter, charityRouter } = require("./routers");
 const { connectDB, initializeData } = require('./config/db');
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
 const SERVER_PORT = process.env.SERVER_PORT || 3000;
@@ -20,11 +21,10 @@ connectDB()
 // CORS setup
 const whilelistedCors = [
   `http://localhost:${SERVER_PORT}`,
-  'http://localhost:5173',
+  'http://localhost:4000'
 ];
 
-// Middleware setup
-app.use(helmet()); // Set security-related HTTP headers
+app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     if (whilelistedCors.includes(origin) || !origin) {
@@ -35,28 +35,21 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(cookieParser()); // Parse cookies
-app.use(bodyParser.json()); // Parse JSON bodies
-app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
-app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const API_PREFIX = '/charitan/api/v1';
 
-// Basic test route
-app.get(`${API_PREFIX}`, (req, res) => {
-  return res.status(httpStatus.OK).json({ message: "Hello world! Server is running well" });
-});
 
-// Routes setup with prefix
 app.use(`${API_PREFIX}/auth`, authRouter);
 app.use(`${API_PREFIX}/charities`, charityRouter);
-app.use(`${API_PREFIX}/donors`, donorRouter);
-app.use(`${API_PREFIX}/projects`, projectRouter);
+
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
   console.error(err); 
-
   return res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR).json({
     message: "Internal Server Error",
     error: err.message,
