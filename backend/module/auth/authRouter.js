@@ -6,7 +6,10 @@ const {
   register,
   login,
   logout,
+  verifyUser,
 } = require("./authController");
+
+authRouter.post("/verify/:id", verifyUser);
 
 authRouter.post("/new", register);
 

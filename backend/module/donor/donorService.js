@@ -1,4 +1,6 @@
-const DonorRepository = require('./donorRepository')
+const DonorRepository = require('./donorRepository');
+const UserRepository = require('../user/userService');
+const { validateDonorRegisterRequest } = require('./donorDto');
 
 class DonorService {
   // Service to get a donor by ID
@@ -20,12 +22,9 @@ class DonorService {
   }
 
   // Service to get all donors
-  async getAllDonors(page, limit) {
-    const totalDonors = await DonorRepository.count(); 
+  async getAllDonors(page, limit, filters) {
+    const { results, totalDonors } = await DonorRepository.getAll(page, limit, filters);
     const totalPages = Math.ceil(totalDonors / limit);
-
-    const donors = await DonorRepository.getAll(page);
-
     const isLast = page >= totalPages; 
 
     return {
@@ -33,8 +32,28 @@ class DonorService {
       totalPages: totalPages,
       pageSize: limit,
       isLast: isLast,
-      data: donors 
+      data: results 
     };
+  }
+
+  async createDonor(data, id) {
+    const isVerified = await UserRepository.isVerified(id);
+    if(!isVerified) {
+      throw new Error('This User has NOT verified the email for register!');
+    }
+
+    const { error } = validateDonorRegisterRequest(data);
+    if (error) {
+      throw new Error(error.details[0].message);
+    }
+
+    const donorData = {
+      ...data,
+      user: id,
+      totalDonation: 0,
+    };
+
+    return await DonorRepository.create(donorData);
   }
 }
 

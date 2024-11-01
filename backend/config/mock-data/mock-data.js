@@ -1,8 +1,10 @@
 // initialData.js
 
+const { isVerified } = require("../../module/user/userRepository");
+
 const initialData = {
     admin: {
-      email: 'admin@example.com',
+      email: 'admin@charitan.com',
       password: 'adminpassword',
       role: 'Admin',
     },
@@ -14,7 +16,8 @@ const initialData = {
       { type: 'non-profit', country: 'Ukraine', companyName: 'Non-profit UA' },
       { type: 'non-profit', country: 'Israel', companyName: 'Non-profit IL' },
     ],
-    donorCountries: ['Vietnam', 'Germany', 'Qatar', 'USA', 'Cameroon'],
+    categories: ['Food', 'Health', 'Education', 'Environment','Religion', 'Humanitarian', 'Housing', 'Other'],
+    countries: ['Vietnam', 'Germany', 'Qatar', 'USA', 'Cameroon'],
     globalProjects: [
       {
         title: 'Middle East Crisis',

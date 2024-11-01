@@ -2,34 +2,39 @@ const express = require('express');
 const DonorController = require('./donorController');
 const { authenticate, authorize } = require("../../middleware/auth");
 const UserType = require('../user/enum/userType');
-const donorRouter = express.Router();
+const DonorRouter = express.Router();
 
-donorRouter.get(
+DonorRouter.post(
+    '/new/:id',
+    DonorController.createDonor
+);
+
+DonorRouter.get(
     '/all', 
     authenticate,
     authorize([UserType.ADMIN]),
     DonorController.getAllDonors
 );
 
-donorRouter.get(
+DonorRouter.get(
     '/:id', 
     authenticate,
     authorize([UserType.ADMIN, UserType.CHARITY, UserType.DONOR]),
     DonorController.getDonorById
 );
 
-donorRouter.get(
+DonorRouter.get(
     '/myInfo', 
     authenticate,
     authorize([UserType.DONOR]),
     DonorController.getMyInfo
 );
 
-donorRouter.put(
+DonorRouter.put(
     '/:id',
     authenticate,
     authorize([UserType.DONOR]), 
     DonorController.updateDonor
 );
 
-module.exports = donorRouter;
+module.exports = DonorRouter;

@@ -7,7 +7,6 @@ const mockData = require('./mock-data/mock-data');
 const User = require('../module/user/user');
 const Charity = require('../module/charity/charity');
 const Donor = require('../module/donor/donor');
-const Country = require('../module/country/country');
 const Project = require('../module/project/project');
 
 // Connect to the DB
@@ -28,9 +27,8 @@ const initializeData = async () => {
     const userCount = await User.countDocuments();
     const charityCount = await Charity.countDocuments();
     const donorCount = await Donor.countDocuments();
-    const countryCount = await Country.countDocuments();
     const projectCount = await Project.countDocuments();
-    if (userCount > 0 && charityCount < 6 && donorCount < 30 && countryCount < 5 && projectCount < 7 ) {
+    if (userCount > 0 && charityCount < 6 && donorCount < 30  && projectCount < 7 ) {
       console.log('Database already populated');
       return;
     }
@@ -38,7 +36,6 @@ const initializeData = async () => {
     await User.deleteMany();
     await Charity.deleteMany();
     await Donor.deleteMany();
-    await Country.deleteMany();
     await Project.deleteMany();
     
     console.log('Database is empty. Populating initial data...');
@@ -48,6 +45,7 @@ const initializeData = async () => {
       email: mockData.admin.email,
       password: await bcrypt.hash(mockData.admin.password, 10),
       role: mockData.admin.role,
+      isVerified: true,
     });
     await admin.save();
 
@@ -55,9 +53,10 @@ const initializeData = async () => {
     const charityDocs = await Promise.all(
       mockData.charities.map(async (charity) => {
         const charityUser = new User({
-          email: `${charity.companyName.replace(' ', '').toLowerCase()}@example.com`,
+          email: `${charity.companyName.replace(' ', '').toLowerCase()}@charitan.com`,
           password: await bcrypt.hash('charitypassword', 10),
           role: 'Charity', 
+          isVerified: true,
         });
         await charityUser.save();
 
@@ -70,35 +69,25 @@ const initializeData = async () => {
         }).save();
       })
     );
-
-    // Create COUNTRIES
-    const countryDocs = await Promise.all(
-      mockData.donorCountries.map(async (countryName) => {
-        const country = new Country({ name: countryName });
-        return await country.save();
-      })
-    );
-
     // Create 30 DONORS
     const donors = [];
 
-    for (const country of mockData.donorCountries) {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 30; i++) {
         const donorUser = new User({
-          email: `${country.toLowerCase()}donor${i}@example.com`,
+          email: `donor${i}@gmail.com`,
           password: await bcrypt.hash('donorpassword', 10),
           role: 'Donor', 
+          isVerified: true,
         });
         await donorUser.save();
-
+ 
         const donor = new Donor({
           user: donorUser._id,
           firstName: `First${i}`,
           lastName: `Last${i}`,
-          address: `${country} Address ${i}`,
+          address: `$Address ${i}`,
         });
         donors.push(await donor.save());
-      }
     }
 
     // Create Global Crisis CHARITY PROJECTS

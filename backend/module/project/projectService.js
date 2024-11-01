@@ -1,15 +1,13 @@
 const ProjectRepository = require('./projectRepository');
 const { validateProjectCreationRequest } = require('./projectDto');
+const UserService = require('../user/userService');
+const { sendProjectCreationEmail } = require('../../utils/sendMail');
 
 class ProjectService {
   // Method to get all projects
-  async getAllProjects( page, limit) {
-    const totalProjects = await Project.count();
+  async getAllProjects( page, limit, filters) {
+    const { results, totalProjects } = await ProjectRepository.getAll(page, limit, filters);
     const totalPages = Math.ceil(totalProjects / limit);
-    const projects = await Project.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit);
-
     const isLast = page >= totalPages; 
   
     return {
@@ -17,15 +15,14 @@ class ProjectService {
       totalPages: totalPages,
       pageSize: limit,
       isLast: isLast,
-      data: projects,
+      data: results,
     };
   }  
 
    // Method to get all active projects with optional filtering and search
-  async getActiveProjects(filters, page, limit) {
-    const totalActiveProjects = await ProjectRepository.countActiveProjects(); 
-    const totalPages = Math.ceil(totalActiveProjects / limit);
-    const projects = await ProjectRepository.getActiveProjects(page, limit, filters);
+  async getActiveProjects(page, limit, filters) {
+    const { results, totalProjects } = await ProjectRepository.getActiveProjects(page, limit, filters);
+    const totalPages = Math.ceil(totalProjects / limit);
 
     const isLast = page >= totalPages;
 
@@ -34,7 +31,7 @@ class ProjectService {
       totalPages: totalPages,
       pageSize: limit,
       isLast: isLast,
-      data: projects,
+      data: results,
     };
   }
 
@@ -48,26 +45,21 @@ class ProjectService {
   }
 
   // Method to get projects based on user type (charity or donor)
-  async getMyProjects(id, role, page, limit) {
-    if (role === 'Charity') {
-      const totalProjects = await ProjectRepository.countProjectsByCharity(id);
-      const totalPages = Math.ceil(totalProjects / limit); 
-    
-      const projects = await ProjectRepository.getProjectsByCharity(query, page, limit); 
-    
-      const isLast = page >= totalPages; 
-    
-      return {
-        currentPage: page,
-        totalPages: totalPages,
-        pageSize: limit,
-        isLast: isLast,
-        data: projects 
-      };
-    // } else if (role === 'Donor') {
-    //   return await ProjectRepository.getProjectsByDonor(id);
-    }
-    throw new Error('Invalid user role');
+  async getProjectsByCharity(id, page, limit) {
+    const totalProjects = await ProjectRepository.countProjectsByCharity(id);
+    const totalPages = Math.ceil(totalProjects / limit); 
+  
+    const projects = await ProjectRepository.getProjectsByCharity(query, page, limit); 
+  
+    const isLast = page >= totalPages; 
+  
+    return {
+      currentPage: page,
+      totalPages: totalPages,
+      pageSize: limit,
+      isLast: isLast,
+      data: projects 
+    };
   }
 
   // Method to create a new project based on user role
@@ -76,6 +68,8 @@ class ProjectService {
       ...projectData,
       status: role === 'admin' ? 'active' : 'pending',
       charity: id,
+      raisedAmount: 0,
+      createAt: Date.now,
     };
 
     const { error } = validateProjectCreationRequest(newProjectData);
@@ -83,13 +77,17 @@ class ProjectService {
       throw new Error(error.details[0].message);
     }
 
-    return await ProjectRepository.create(newProjectData);
+    const success = await ProjectRepository.create(newProjectData);
+    if(success) {
+      const user = await UserService.getUserById(id);
+      await sendProjectCreationEmail(user.email, newProjectData.title);
+    }
   }
 
   // Method to update a project by the charity owner
-  async updateProject(projectId, data, userId) {
+  async updateProject(projectId, data, userId, role) {
     const project = await ProjectRepository.findById(projectId);
-    if (!project || project.charity.toString() !== userId) {
+    if (!project || project.charity.toString() !== userId || role != 'Admin') {
       throw new Error('Project not found or access denied');
     }
     return await ProjectRepository.update(projectId, data);
@@ -118,17 +116,16 @@ class ProjectService {
     return await ProjectRepository.update(projectId, { status: 'halt' });
   }
 
-  // Method for charity owner to close a project
-  async closeProject(projectId, userId) {
-    const project = await ProjectRepository.findById(projectId);
-    if (!project || project.charity.toString() !== userId) {
-      throw new Error('Project not found or access denied');
-    }
-    return await ProjectRepository.update(projectId, { status: 'closed' });
-  }
-
   // Method for admin to delete a project
-  async deleteProject(projectId) {
+  async deleteProject(projectId, role, userId) {
+    if (role == 'Admin') {
+      return await ProjectRepository.update(projectId, { status: 'deleted' });
+    }
+
+    const project = await ProjectRepository.findById(projectId);
+    if(!project || project.charity.toString() !== userId || project.status !== 'halted'){
+      throw new Error('Project not found or invalid status');
+    }
     return await ProjectRepository.update(projectId, { status: 'deleted' });
   }
 }

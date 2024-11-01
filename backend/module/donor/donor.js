@@ -5,8 +5,10 @@ const donorSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   firstName: { type: String , required: true},
   lastName: { type: String , required: true},
+  gender: { type: String, enum: ['male', 'female', 'other']}, 
   address: { type: String },
   avatar: { type: String },
+  totalDonation: { type: Number, positive, default: 0},
   stripeId: { type: String }
 });
 

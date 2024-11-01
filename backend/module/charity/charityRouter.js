@@ -4,6 +4,11 @@ const { authenticate, authorize } = require("../../middleware/auth");
 const UserType = require('../user/enum/userType');
 const CharityRouter = express.Router();
 
+CharityRouter.post(
+    '/new/:id',
+    CharityController.createCharity
+);
+
 CharityRouter.get(
     '/all', 
     authenticate,

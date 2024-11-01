@@ -3,11 +3,21 @@ const { generateToken, setCookie } = require('../../utils');
 const { deleteAccessToken } = require("./accessTokenService");
 const bcrypt = require('bcrypt');
 
+const verifyUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const verifyUser = await UserService.verifyUser(id);
+    return res.status(201).json({ message: 'User verifies successfully'});
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}
+
 // Register a new user
 const register = async (req, res) => {
   try {
-    const { newUserData, requiredData} = req.body;
-    const newUser = await UserService.register(newUserData, requiredData);
+    const { data } = req.body;
+    const newUser = await UserService.register(data);
     return res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -59,6 +69,7 @@ const logout = async (req, res) => {
 };
 
 module.exports = {
+  verifyUser,
   register,
   login,
   logout,

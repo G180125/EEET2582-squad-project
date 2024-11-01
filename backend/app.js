@@ -7,7 +7,7 @@ const path = require("path");
 const helmet = require("helmet");
 const httpStatus = require("http-status"); 
 const { authRouter, charityRouter, donorRouter, projectRouter } = require("./routers");
-const { connectDB, initializeData } = require('./config/db');
+const { connectDB, initializeData } = require('./config/dbConfig');
 
 const app = express();
 const SERVER_PORT = process.env.SERVER_PORT || 3000;

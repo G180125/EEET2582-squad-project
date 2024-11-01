@@ -13,6 +13,15 @@ class UserRepository {
     const user = new User(data);
     return await user.save();
   }
+
+  async update(id, data) {
+    return await User.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async isVerified(id) {
+    const user = await User.findById(id);
+    return user?.isVerified === true;
+  }
 }
 
 module.exports = new UserRepository();

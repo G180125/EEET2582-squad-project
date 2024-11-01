@@ -5,10 +5,6 @@ class DonorRepository {
     const donor = new Donor(data);
     return await donor.save();
   }
-  
-  async count() {
-    return await Donor.countDocuments();
-  }
 
   async findById(id) {
     return await Donor.findById(id);
@@ -18,11 +14,23 @@ class DonorRepository {
     return await Donor.findByIdAndUpdate(id, data, { new: true });
   }
 
-  async getAll(page, limit) {
+  async getAll(page, limit, filters) {
+    const { search, gender } = filters;
+    const query = {};
+    if (gender) query.gender = gender;
+    if (search) {
+      query.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } }
+      ];
+    }
     const offset = (page - 1) * limit;
-    return await Donor.find() 
-      .skip(offset)  
-      .limit(limit);
+    return {
+      results: await Donor.find(query) 
+                .skip(offset)  
+                .limit(limit),
+      totalDonors: await Donor.countDocuments(query)
+    }
   }
 }
 

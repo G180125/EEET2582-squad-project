@@ -1,4 +1,6 @@
 const CharityRepository = require('./charityRepository');
+const UserRepository = require('../user/userService');
+const { validateCharityRegisterRequest } = require('./charityDto');
 
 class CharityService {
   // Service to get a Charity by ID
@@ -20,12 +22,9 @@ class CharityService {
   }
 
   // Service to get all Charities
-  async getAllCharities(page, limit) {
-    const totalCharities = await CharityRepository.count(); 
+  async getAllCharities(page, limit, filters) { 
+    const { results, totalCharities } = await CharityRepository.getAll(page, limit, filters);
     const totalPages = Math.ceil(totalCharities / limit);
-
-    const donors = await CharityRepository.getAll(page);
-
     const isLast = page >= totalPages; 
 
     return {
@@ -33,8 +32,27 @@ class CharityService {
       totalPages: Math.ceil(totalCharities / limit),
       pageSize: limit,
       isLast: isLast,
-      data: donors 
+      data: results 
     };
+  }
+
+  async createCharity(data, id) {
+    const isVerified = await UserRepository.isVerified(id);
+    if(!isVerified) {
+      throw new Error('This User has NOT verified the email for register!');
+    }
+
+    const { error } = validateCharityRegisterRequest(data);
+    if (error) {
+      throw new Error(error.details[0].message);
+    }
+
+    const charityData = {
+      ...data,
+      user: id,
+    };
+
+    return await CharityRepository.create(charityData);
   }
 }
 

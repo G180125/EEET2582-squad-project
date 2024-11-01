@@ -26,10 +26,10 @@ ProjectRouter.get(
 );
 
 ProjectRouter.get(
-    '/my', 
+    '/charity/:id', 
     authenticate,
     authorize([UserType.DONOR, UserType.CHARITY]),
-    ProjectController.getMyProjects
+    ProjectController.getProjectsByCharity
 );
 
 ProjectRouter.post(
@@ -42,7 +42,7 @@ ProjectRouter.post(
 ProjectRouter.put(
     '/:id',
     authenticate,
-    authorize([UserType.CHARITY]), 
+    authorize([UserType.ADMIN, UserType.CHARITY]),
     ProjectController.updateProject
 );
 
@@ -60,17 +60,10 @@ ProjectRouter.patch(
     ProjectController.haltProject
 );
 
-ProjectRouter.patch(
-    '/:id/close',
-    authenticate,
-    authorize([UserType.CHARITY]), 
-    ProjectController.closeProject
-);
-
 ProjectRouter.delete(
     '/:id',
     authenticate,
-    authorize([UserType.ADMIN]), 
+    authorize([UserType.ADMIN, UserType.CHARITY]),
     ProjectController.deleteProject
 );
 

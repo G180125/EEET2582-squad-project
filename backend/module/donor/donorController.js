@@ -40,7 +40,22 @@ class DonorController {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      const results = await DonorService.getAllDonors(page, limit);
+      const filters = {
+        search: req.query.search,
+        gender: req.query.gender,
+      };
+      const results = await DonorService.getAllDonors(page, limit, filters);
+      res.status(200).json(results);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async createDonor(req, res) {
+    try {
+      const id = req.params.id;
+      const data = req.body.data;
+      const results = await DonorService.createDonor(data, IDBKeyRange);
       res.status(200).json(results);
     } catch (error) {
       res.status(500).json({ message: error.message });

@@ -1,15 +1,11 @@
 require("dotenv").config();
 const UserRepository = require('./userRepository');
-const DonorRepository = require('../donor/donorRepository');
-const CharityRepository = require('../charity/charityRepository');
 const bcrypt = require('bcrypt');
 const { validateRegisterRequest } = require('./userDto');
-const { validateDonorRegisterRequest } = require('../donor/donorDto');
-const { validateCharityRegisterRequest } = require('../charity/charityDto');
-const transporter = require('../../utils/mailer');
+const { sendVerifyEmail } = require('../../utils/sendMail');
 
 class UserService {
-  async register(userData, requiredData) {
+  async register(userData) {
     // Validate user request data
     const { error } = validateRegisterRequest(userData);
     if (error) {
@@ -29,44 +25,25 @@ class UserService {
     const newUser = {
       ...userData,
       password: hashedPassword,
+      isVerified: false,
+      createAt: Date.now,
     };
 
     const user = await UserRepository.create(newUser);
-
-    // Map the new user ID into data to create donor or charity
-    const roleSpecificData = {
-      ...requiredData,
-      user: user.id,
-    };
-
-    // Create role-specific record
-    let roleCreated;
-    if (user.role === 'Donor') {
-      const { error } = validateDonorRegisterRequest(roleSpecificData);
-      if (error) {
-        throw new Error(error.details[0].message);
-      }
-
-      roleCreated = await DonorRepository.create(roleSpecificData);
-    } else if (user.role === 'Charity') {
-      const { error } = validateCharityRegisterRequest(roleSpecificData);
-      if (error) {
-        throw new Error(error.details[0].message);
-      }
-
-      roleCreated = await CharityRepository.create(roleSpecificData);
-    }
-
+    const OTP = Math.floor(100000 + Math.random() * 900000).toString();
+    
     // Send registration success email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: 'Welcome to Our Platform!',
-      text: `Hello ${user.name},\n\nThank you for registering as a ${user.role} on our platform!`,
-      html: `<p>Hello ${user.name},</p><p>Thank you for registering as a ${user.role} on our platform!</p>`
-    });
+    await sendVerifyEmail(user.email, OTP)
 
-    return { user, roleCreated };
+    return { user: user, OTP: OTP };
+  }
+
+  async verifyUser(id) {
+    return await UserRepository.update(id, { isVerified: 'true' });
+  }
+
+  async isVerified(id) {
+    return await UserRepository.isVerified(id);
   }
 
   async login(email, password, res) {

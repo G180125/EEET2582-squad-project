@@ -40,7 +40,22 @@ class CharityController {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      const results = await CharityService.getAllCharities(page, limit);
+      const filters = {
+        search: req.query.search,
+        type: req.query.type,
+      };
+      const results = await CharityService.getAllCharities(page, limit, filters);
+      res.status(200).json(results);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async createCharity(req, res) {
+    try {
+      const id = req.params.id;
+      const data = req.body.data;
+      const results = await CharityService.createCharity(data, id);
       res.status(200).json(results);
     } catch (error) {
       res.status(500).json({ message: error.message });

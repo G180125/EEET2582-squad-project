@@ -6,8 +6,15 @@ class ProjectController {
     try {
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
+      const filters = {
+        month: req.query.month,
+        region: req.query.region,
+        country: req.query.country,
+        category: req.query.category,
+        search: req.query.search
+      };
 
-      const projects = await ProjectService.getAllProjects(page, limit);
+      const projects = await ProjectService.getAllProjects(page, limit, filters);
       return res.status(200).json(projects);
     } catch (err) {
       return res.status(400).json({ error: err.message });
@@ -16,14 +23,17 @@ class ProjectController {
 
   async getActiveProjects(req, res) {
     try {
-      const filters = {
-        status: req.query.status,
-        search: req.query.search,
-      };
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
+      const filters = {
+        month: req.query.month,
+        region: req.query.region,
+        country: req.query.country,
+        category: req.query.category,
+        search: req.query.search
+      };
 
-      const projects = await ProjectService.getActiveProjects(filters, page, limit);
+      const projects = await ProjectService.getActiveProjects(page, limit, filters);
       return res.status(200).json(projects);
     } catch (err) {
       return res.status(400).json({ error: err.message });
@@ -41,15 +51,13 @@ class ProjectController {
     }
   }
 
-  // Method to get projects based on user role
-  async getMyProjects(req, res) {
+  async getProjectsByCharity(req, res) {
     try {
-      const userId = req.id; 
-      const role = req.role; 
+      const userId = req.params.id; 
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
-
-      const results = await ProjectService.getMyProjects(userId, role, page, limit);
+      getProjectsByCharity
+      const results = await ProjectService.getMyProjects(userId, page, limit);
       return res.status(200).json(results);
     } catch (err) {
       return res.status(400).json({ error: err.message });
@@ -76,8 +84,9 @@ class ProjectController {
       const projectId = req.params.id; 
       const projectData = req.body; 
       const userId = req.id; 
+      const role = req.role; 
 
-      const updatedProject = await ProjectService.updateProject(projectId, projectData, userId);
+      const updatedProject = await ProjectService.updateProject(projectId, projectData, userId, role);
       return res.status(200).json({ message: 'Project updated successfully', project: updatedProject });
     } catch (err) {
       return res.status(400).json({ error: err.message });
@@ -108,24 +117,13 @@ class ProjectController {
     }
   }
 
-  // Method for charity owner to close a project
-  async closeProject(req, res) {
-    try {
-      const projectId = req.params.id;
-      const userId = req.id; 
-
-      await ProjectService.closeProject(projectId, userId);
-      return res.status(200).json({ message: 'Project closed successfully' });
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-  }
-
   // Method for admin to delete a project
   async deleteProject(req, res) {
     try {
       const projectId = req.params.id; 
-      await ProjectService.deleteProject(projectId);
+      const role = req.role;
+      const userId = req.id;
+      await ProjectService.deleteProject(projectId, role, userId);
       return res.status(200).json({ message: 'Project deleted successfully' });
     } catch (err) {
       return res.status(400).json({ error: err.message });

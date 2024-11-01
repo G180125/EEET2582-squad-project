@@ -6,10 +6,6 @@ class CharityRepository {
     return await charity.save();
   }
 
-  async count() {
-    return await Charity.countDocuments();
-  }
-
   async findById(id) {
     return await Charity.findById(id);
   }
@@ -18,11 +14,24 @@ class CharityRepository {
     return await Charity.findByIdAndUpdate(id, data, { new: true });
   }
 
-  async getAll(page, limit) {
+  async getAll(page, limit, filters) {
+    const { search, type } = filters;
+    const query = {};
+
+    if (type) query.type = type;
+    if (search) {
+      query.$or = [
+        { companyName: { $regex: search, $options: 'i' } }
+      ];
+    }
+
     const offset = (page - 1) * limit;
-    return await Charity.find() 
-      .skip(offset)  
-      .limit(limit);
+    return {
+      results: await Charity.find(query) 
+            .skip(offset)  
+            .limit(limit),
+      totalCharities: await Charity.countDocuments(query)
+    }
   }
 }
 
